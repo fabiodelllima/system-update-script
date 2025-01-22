@@ -23,6 +23,8 @@
   <a href="#license">License</a>
 </p>
 
+<br>
+
 ## Features
 
 The Fedora System Updater offers a comprehensive solution to keep your system up to date:
