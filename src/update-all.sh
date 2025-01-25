@@ -91,39 +91,6 @@ update_snap() {
     fi
 }
 
-update_pip() {
-    if check_command pip; then
-        print_message "Checking Python packages..."
-        python3 -c "
-import subprocess
-import json
-def check_user_packages():
-    try:
-        result = subprocess.run(
-            ['pip', 'list', '--user', '--outdated', '--format=json'],
-            capture_output=True,
-            text=True
-        )
-        packages = json.loads(result.stdout)
-        if packages:
-            print('\nOutdated user packages:')
-            for pkg in packages:
-                print('  - {} ({} -> {})'.format(
-                    pkg['name'],
-                    pkg['version'],
-                    pkg['latest_version']
-                ))
-            print('\nTo update safely, run:')
-            print('  python3 -m pip install --user --upgrade <package-name>')
-        else:
-            print('\nAll user-installed Python packages are up to date')
-    except Exception as e:
-        print('\nAll user-installed Python packages are up to date')
-check_user_packages()
-"
-    fi
-}
-
 update_npm() {
     if check_command npm; then
         print_message "Updating global npm packages..."
@@ -137,6 +104,95 @@ update_cargo() {
         cargo install-update -a
     fi
 }
+
+update_python_tools() {
+    print_message "Checking and updating essential Python tools: pip, setuptools, wheel, virtualenv, pip-tools..."    
+    python3 -m pip install --upgrade pip setuptools wheel
+    if ! python3 -m virtualenv --version &> /dev/null; then
+        print_message "Installing virtualenv..."
+        python3 -m pip install --user virtualenv
+    else
+        print_message "Updating virtualenv..."
+        python3 -m pip install --user --upgrade virtualenv
+    fi
+    if ! command -v pip-compile &> /dev/null; then
+        print_message "Installing pip-tools..."
+        python3 -m pip install --user pip-tools
+    else
+        print_message "Updating pip-tools..."
+        python3 -m pip install --user --upgrade pip-tools
+    fi
+}
+
+
+update_user_pip_packages() {
+    print_message "Updating user-installed Python packages..."
+    OUTDATED_PACKAGES=$(python3 -m pip list --user --outdated --format=freeze 2>/dev/null)    
+    if [ -n "$OUTDATED_PACKAGES" ]; then
+        print_warning "Outdated user-installed packages found:"
+        echo "$OUTDATED_PACKAGES"
+        echo -e "\nTo update these packages, run:"
+        for pkg in $OUTDATED_PACKAGES; do
+            package_name=$(echo "$pkg" | cut -d '=' -f 1)
+            echo "  python3 -m pip install --user --upgrade $package_name"
+        done
+    else
+        print_message "All user-installed Python packages are up-to-date."
+    fi
+}
+
+
+check_global_pip_packages() {
+    print_message "Checking globally installed Python packages (via pip)..."
+    OUTDATED_PACKAGES=$(pip list --outdated --format=freeze 2>/dev/null)    
+    if [ -n "$OUTDATED_PACKAGES" ]; then
+        print_warning "Outdated globally installed pip packages found:"
+        echo "$OUTDATED_PACKAGES"
+        echo -e "\nTo update these packages, run:"
+        for pkg in $OUTDATED_PACKAGES; do
+            package_name=$(echo "$pkg" | cut -d '=' -f 1)
+            echo "  sudo pip install --upgrade $package_name"
+        done
+    else
+        print_message "No outdated globally installed pip packages found."
+    fi
+}
+
+
+update_virtualenvs() {
+    print_message "Checking for Python virtual environments..."
+    VENV_DIRS=$(find $HOME -type d -name "venv" -o -name "env" 2>/dev/null)
+    if [ -n "$VENV_DIRS" ]; then
+        for venv in $VENV_DIRS; do
+            print_message "Activating and updating environment: $venv"
+            source "$venv/bin/activate"            
+            OUTDATED_PACKAGES=$(pip list --outdated --format=freeze)
+            if [ -n "$OUTDATED_PACKAGES" ]; then
+                print_warning "Outdated packages in $venv:"
+                echo "$OUTDATED_PACKAGES"                
+                echo -e "\nTo update these packages, run:"
+                for pkg in $OUTDATED_PACKAGES; do
+                    package_name=$(echo "$pkg" | cut -d '=' -f 1)
+                    echo "  pip install --upgrade $package_name"
+                done
+            else
+                print_message "All packages in $venv are up-to-date."
+            fi
+            deactivate
+        done
+    else
+        print_message "No virtual environments found."
+    fi
+}
+
+update_pip() {
+    print_message "Updating Python tools and packages..."    
+    update_python_tools   
+    update_user_pip_packages    
+    check_global_pip_packages    
+    update_virtualenvs
+}
+
 
 check_manual_installs() {
     local dir="$1"
@@ -208,9 +264,9 @@ main() {
     update_rpm_fusion
     update_flatpak
     update_snap
-    update_pip
     update_npm
     update_cargo
+    update_pip
     check_manual_updates
     perform_cleanup
     print_message "System update completed successfully!"
