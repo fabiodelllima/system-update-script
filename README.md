@@ -9,7 +9,7 @@
 
 <div align="center">
 
-[![Status: Under Development](https://img.shields.io/badge/status-under_development-red)]()  
+[![Status: Under Development](https://img.shields.io/badge/Status-Under_Development-red)]()  
 [![Bash](https://img.shields.io/badge/Made%20with-Bash-1f425f.svg)](https://www.gnu.org/software/bash/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -83,14 +83,14 @@ The script will check for these and skip if not found:
    
    The system PATH needs to include `/usr/local/bin` for the script to be executable from any directory. There are two configuration options:
 
-   #### 1: Temporary configuration
+   #### 3.1. Temporary configuration
 
    For the current terminal session:
    ```bash
    export PATH=$PATH:/usr/local/bin
    ```
 
-   #### 2: Permanent configuration
+   #### 3.2. Permanent configuration
 
    Add to your shell configuration file:
    
