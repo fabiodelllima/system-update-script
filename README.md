@@ -1,8 +1,7 @@
-<br>
+<div align="center">
 
-<p align="center">  
-  <strong>Fedora System Updater</strong>
-</p>
+  # Fedora System Updater
+</div>
   
 <p align="center">
   A shell script to automate system updates on Fedora Linux, including multiple package managers and detection of manually installed programs that might need updates.
@@ -10,8 +9,9 @@
 
 <div align="center">
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Status: Under Development](https://img.shields.io/badge/status-under_development-red)]()  
 [![Bash](https://img.shields.io/badge/Made%20with-Bash-1f425f.svg)](https://www.gnu.org/software/bash/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
 
